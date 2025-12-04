@@ -96,12 +96,12 @@ export default function StudentDashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-content">
-          <h1>🎓 Student Dashboard</h1>
+          <h1>Student Dashboard</h1>
           <p>Learning & Progress Tracker</p>
         </div>
         <div className="user-info">
           <span>Welcome, {user.name}</span>
-          <div className="streak-badge">🔥 Streak: {stats?.student?.streak || 0} days</div>
+          <div className="streak-badge">Streak: {stats?.student?.streak || 0} days</div>
           <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>
       </header>
@@ -118,19 +118,19 @@ export default function StudentDashboard() {
           <>
             <section className="overview-cards">
               <div className="card stat-card">
-                <div className="card-icon">📊</div>
+                <div className="card-icon"></div>
                 <h3>Average Score</h3>
                 <p className="stat-number">{stats?.performanceData?.averageScore || 0}%</p>
               </div>
               <div className="card stat-card">
-                <div className="card-icon">📝</div>
+                <div className="card-icon"></div>
                 <h3>Quizzes Taken</h3>
                 <p className="stat-number">{stats?.totalAssignments || 0}</p>
               </div>
             </section>
 
             <section className="chart-section">
-              <h2>📈 Performance by Topic</h2>
+              <h2>Performance by Topic</h2>
               <div className="chart-container">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={stats?.performanceData?.topics || []}>
@@ -138,7 +138,7 @@ export default function StudentDashboard() {
                     <XAxis dataKey="topic" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="avgScore" fill="#82ca9d" name="Avg Score" />
+                    <Bar dataKey="avgScore" fill="#F2C94C" name="Avg Score" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -149,7 +149,7 @@ export default function StudentDashboard() {
         {activeTab === 'tools' && (
           <section className="tools-section">
             <div className="tool-card ai-helper">
-              <h2>🤖 AI Study Helper</h2>
+              <h2>AI Study Helper</h2>
               <form onSubmit={handleAiQuery}>
                 <textarea
                   placeholder="Ask a question..."
@@ -168,7 +168,7 @@ export default function StudentDashboard() {
             </div>
 
             <div className="tool-card video-converter">
-              <h2>🎥 Video Converter</h2>
+              <h2>Video Converter</h2>
               <p>Convert educational videos to audio or other formats.</p>
               <button onClick={handleVideoConvert} className="btn-secondary">Start Conversion</button>
             </div>
@@ -177,7 +177,7 @@ export default function StudentDashboard() {
 
         {activeTab === 'quizzes' && (
           <section className="quizzes-section">
-            <h2>📝 Upcoming Quizzes</h2>
+            <h2>Upcoming Quizzes</h2>
             <div className="quiz-list">
               {quizzes.length > 0 ? quizzes.map(quiz => (
                 <div key={quiz._id} className="quiz-card">
@@ -194,7 +194,7 @@ export default function StudentDashboard() {
         {activeTab === 'community' && (
           <section className="community-section">
             <div className="forum-form-container">
-              <h2>💬 Start Discussion</h2>
+              <h2>Start Discussion</h2>
               <form onSubmit={handleCreatePost} className="forum-form">
                 <input type="text" placeholder="Title" value={forumForm.title} onChange={e => setForumForm({ ...forumForm, title: e.target.value })} required />
                 <textarea placeholder="Content" value={forumForm.content} onChange={e => setForumForm({ ...forumForm, content: e.target.value })} required />

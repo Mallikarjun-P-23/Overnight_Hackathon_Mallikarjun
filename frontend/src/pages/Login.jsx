@@ -49,8 +49,7 @@ export default function Login() {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1>🎓 Hackathon Platform</h1>
-          <p>Educational Excellence Hub</p>
+          <h1>Educational Excellence Hub</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
@@ -112,9 +111,9 @@ export default function Login() {
 
         <div className="email-examples">
           <h4>Demo Accounts:</h4>
-          <p>📌 Principal: test@principal.com</p>
-          <p>👨‍🏫 Teacher: test@teacher.com</p>
-          <p>👨‍🎓 Student: test@student.com</p>
+          <p>Principal: test@principal.com</p>
+          <p>Teacher: test@teacher.com</p>
+          <p>Student: test@student.com</p>
         </div>
       </div>
     </div>

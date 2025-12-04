@@ -61,7 +61,7 @@ export default function PrincipalDashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-content">
-          <h1>📌 Principal Dashboard</h1>
+          <h1>Principal Dashboard</h1>
           <p>School Administration Overview</p>
         </div>
         <div className="user-info">
@@ -96,12 +96,12 @@ export default function PrincipalDashboard() {
           <>
             <section className="overview-cards">
               <div className="card stat-card">
-                <div className="card-icon">👨‍🎓</div>
+                <div className="card-icon"></div>
                 <h3>Total Students</h3>
                 <p className="stat-number">{stats?.totalStudents || 0}</p>
               </div>
               <div className="card stat-card">
-                <div className="card-icon">👨‍🏫</div>
+                <div className="card-icon"></div>
                 <h3>Total Teachers</h3>
                 <p className="stat-number">{stats?.totalTeachers || 0}</p>
               </div>
@@ -109,7 +109,7 @@ export default function PrincipalDashboard() {
 
             <section className="chart-section">
               <div className="section-header">
-                <h2>📊 Class-wise Topic Performance</h2>
+                <h2>Class-wise Topic Performance</h2>
                 <div className="class-selector">
                   <label>Select Class: </label>
                   <select
@@ -133,7 +133,7 @@ export default function PrincipalDashboard() {
                       <YAxis domain={[0, 100]} />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="avgScore" fill="#8884d8" name="Average Score (%)" />
+                      <Bar dataKey="avgScore" fill="#F2C94C" name="Average Score (%)" />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -146,7 +146,7 @@ export default function PrincipalDashboard() {
 
         {activeTab === 'teachers' && (
           <section className="heatmap-section">
-            <h2>👥 Teacher Performance & Activity</h2>
+            <h2>Teacher Performance & Activity</h2>
             <div className="heatmap-container">
               <table className="activity-table">
                 <thead>
@@ -181,7 +181,7 @@ export default function PrincipalDashboard() {
         {activeTab === 'announcements' && (
           <section className="announcements-section">
             <div className="announcement-form-container">
-              <h2>📢 Post New Announcement</h2>
+              <h2>Post New Announcement</h2>
               <form onSubmit={handlePostAnnouncement} className="announcement-form">
                 <input
                   type="text"

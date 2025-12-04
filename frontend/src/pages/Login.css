@@ -3,14 +3,15 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #0A1A2F;
   padding: 20px;
 }
 
 .login-card {
-  background: white;
+  background: #112240;
   border-radius: 15px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid #E8C15B;
   padding: 50px 40px;
   width: 100%;
   max-width: 400px;
@@ -34,13 +35,13 @@
 }
 
 .login-header h1 {
-  color: #667eea;
+  color: #FFFFFF;
   font-size: 28px;
   margin-bottom: 8px;
 }
 
 .login-header p {
-  color: #999;
+  color: #E8C15B;
   font-size: 14px;
 }
 
@@ -53,23 +54,30 @@
 
 .form-input {
   padding: 12px 15px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid #E8C15B;
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.3s;
   font-family: inherit;
+  background: #1E3A5F;
+  color: #CBD6E2;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #F2C94C;
+  box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.1);
+}
+
+.form-input::placeholder {
+  color: #CBD6E2;
+  opacity: 0.7;
 }
 
 .error-message {
-  background: #fee;
-  border: 1px solid #fcc;
-  color: #c33;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #fee2e2;
   padding: 10px;
   border-radius: 6px;
   font-size: 13px;
@@ -78,8 +86,8 @@
 
 .submit-btn {
   padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #F2C94C;
+  color: #0A1A2F;
   border: none;
   border-radius: 8px;
   font-size: 16px;
@@ -90,7 +98,8 @@
 
 .submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 10px 25px rgba(242, 201, 76, 0.4);
+  background: #E8C15B;
 }
 
 .submit-btn:disabled {
@@ -102,19 +111,19 @@
   text-align: center;
   margin: 20px 0;
   padding: 15px 0;
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
+  border-top: 1px solid #1E3A5F;
+  border-bottom: 1px solid #1E3A5F;
 }
 
 .toggle-auth p {
-  color: #666;
+  color: #CBD6E2;
   font-size: 14px;
 }
 
 .toggle-btn {
   background: none;
   border: none;
-  color: #667eea;
+  color: #F2C94C;
   font-weight: 600;
   cursor: pointer;
   font-size: 14px;
@@ -122,11 +131,12 @@
 }
 
 .toggle-btn:hover {
-  color: #764ba2;
+  color: #E8C15B;
 }
 
 .email-examples {
-  background: #f5f9ff;
+  background: #1E3A5F;
+  border: 1px solid #4A90E2;
   padding: 15px;
   border-radius: 8px;
   margin-top: 20px;
@@ -134,12 +144,12 @@
 }
 
 .email-examples h4 {
-  color: #667eea;
+  color: #E8C15B;
   margin-bottom: 8px;
   font-size: 13px;
 }
 
 .email-examples p {
-  color: #666;
+  color: #CBD6E2;
   margin: 4px 0;
 }

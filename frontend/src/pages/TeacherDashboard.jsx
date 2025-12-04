@@ -104,7 +104,7 @@ export default function TeacherDashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-content">
-          <h1>🍎 Teacher Dashboard</h1>
+          <h1>Teacher Dashboard</h1>
           <p>Classroom Management & Analytics</p>
         </div>
         <div className="user-info">
@@ -125,7 +125,7 @@ export default function TeacherDashboard() {
           <>
             <section className="overview-cards">
               <div className="card stat-card">
-                <div className="card-icon">📚</div>
+                <div className="card-icon"></div>
                 <h3>Assigned Students</h3>
                 <p className="stat-number">{stats?.assignedStudentsCount || 0}</p>
               </div>
@@ -133,7 +133,7 @@ export default function TeacherDashboard() {
             </section>
 
             <section className="chart-section">
-              <h2>📉 Struggling Topics</h2>
+              <h2>Struggling Topics</h2>
               <div className="chart-container">
                 {stats?.strugglingTopics && Object.keys(stats.strugglingTopics).length > 0 ? (
                   <div className="tags-container">
@@ -153,7 +153,7 @@ export default function TeacherDashboard() {
 
         {activeTab === 'quiz' && (
           <section className="quiz-section">
-            <h2>📝 Create New Quiz</h2>
+            <h2>Create New Quiz</h2>
             <form onSubmit={handleCreateQuiz} className="quiz-form">
               <div className="form-row">
                 <input type="text" placeholder="Quiz Title" value={quizForm.title} onChange={e => setQuizForm({ ...quizForm, title: e.target.value })} required />
@@ -180,7 +180,7 @@ export default function TeacherDashboard() {
         {activeTab === 'students' && (
           <section className="students-section">
             <div className="section-header">
-              <h2>📊 Student Performance Reports</h2>
+              <h2>Student Performance Reports</h2>
               <input
                 type="text"
                 placeholder="Search student by name..."
@@ -203,7 +203,7 @@ export default function TeacherDashboard() {
                     <div style={{ width: 150, height: 50 }}>
                       <ResponsiveContainer>
                         <LineChart data={student.sparklineData?.map((score, i) => ({ i, score })) || []}>
-                          <Line type="monotone" dataKey="score" stroke="#8884d8" strokeWidth={2} dot={false} />
+                          <Line type="monotone" dataKey="score" stroke="#4A90E2" strokeWidth={2} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -231,7 +231,7 @@ export default function TeacherDashboard() {
         {activeTab === 'reminders' && (
           <section className="reminders-section">
             <div className="reminder-form-container">
-              <h2>⏰ Set Reminder</h2>
+              <h2>Set Reminder</h2>
               <form onSubmit={handleCreateReminder} className="reminder-form">
                 <input type="text" placeholder="Title" value={reminderForm.title} onChange={e => setReminderForm({ ...reminderForm, title: e.target.value })} required />
                 <input type="text" placeholder="Description" value={reminderForm.description} onChange={e => setReminderForm({ ...reminderForm, description: e.target.value })} />
