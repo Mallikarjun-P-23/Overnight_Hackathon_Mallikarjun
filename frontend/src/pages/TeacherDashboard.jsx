@@ -3,17 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { dashboardAPI } from '../api';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell
+  LineChart, Line
 } from 'recharts';
 import '../styles/Dashboard.css';
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 export default function TeacherDashboard() {
   const [stats, setStats] = useState(null);
   const [reminders, setReminders] = useState([]);
+  const [students, setStudents] = useState([]); // For reports tab
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [searchTerm, setSearchTerm] = useState('');
   const [quizForm, setQuizForm] = useState({
     title: '',
     targetClass: '',
@@ -45,6 +45,21 @@ export default function TeacherDashboard() {
       setLoading(false);
     }
   };
+
+  const fetchStudents = async () => {
+    try {
+      const res = await dashboardAPI.getTeacherReports();
+      setStudents(res.data);
+    } catch (error) {
+      console.error('Failed to fetch students:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'students') {
+      fetchStudents();
+    }
+  }, [activeTab]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -79,6 +94,10 @@ export default function TeacherDashboard() {
     }
   };
 
+  const filteredStudents = students.filter(s =>
+    s.userId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) return <div className="loading">Loading...</div>;
 
   return (
@@ -110,26 +129,20 @@ export default function TeacherDashboard() {
                 <h3>Assigned Students</h3>
                 <p className="stat-number">{stats?.assignedStudentsCount || 0}</p>
               </div>
-              <div className="card stat-card">
-                <div className="card-icon">📝</div>
-                <h3>Total Assignments</h3>
-                <p className="stat-number">{stats?.totalAssignments || 0}</p>
-              </div>
+              {/* Removed Total Assignments card as requested */}
             </section>
 
             <section className="chart-section">
               <h2>📉 Struggling Topics</h2>
               <div className="chart-container">
                 {stats?.strugglingTopics && Object.keys(stats.strugglingTopics).length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={Object.entries(stats.strugglingTopics).map(([topic, students]) => ({ topic, count: students.length }))}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="topic" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#ff8042" name="Struggling Students" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div className="tags-container">
+                    {Object.keys(stats.strugglingTopics).map(topic => (
+                      <span key={topic} className="topic-tag struggling">
+                        {topic} ({stats.strugglingTopics[topic].length} students)
+                      </span>
+                    ))}
+                  </div>
                 ) : (
                   <p className="no-data">No struggling topics detected yet.</p>
                 )}
@@ -158,7 +171,6 @@ export default function TeacherDashboard() {
                 <input type="datetime-local" value={quizForm.scheduledAt} onChange={e => setQuizForm({ ...quizForm, scheduledAt: e.target.value })} />
                 <input type="number" placeholder="Duration (min)" value={quizForm.durationMinutes} onChange={e => setQuizForm({ ...quizForm, durationMinutes: parseInt(e.target.value) })} />
               </div>
-              {/* Question adding UI would go here - simplified for now */}
               <p className="hint">Note: Question adding interface is simplified for this demo.</p>
               <button type="submit" className="btn-primary">Create Quiz</button>
             </form>
@@ -167,16 +179,51 @@ export default function TeacherDashboard() {
 
         {activeTab === 'students' && (
           <section className="students-section">
-            <h2>📊 Student Performance Reports</h2>
-            <div className="student-list">
-              {stats?.assignedStudents?.map(student => (
-                <div key={student._id} className="student-card">
-                  <h3>{student.userId?.name || 'Student'}</h3>
-                  <p>Grade: {student.grade}</p>
-                  <p>Total Score: {student.totalScore}</p>
-                  {/* Add 'View Analytics' button here to open modal */}
+            <div className="section-header">
+              <h2>📊 Student Performance Reports</h2>
+              <input
+                type="text"
+                placeholder="Search student by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+            </div>
+
+            <div className="student-list-detailed">
+              {filteredStudents.map(student => (
+                <div key={student._id} className="student-row">
+                  <div className="student-info">
+                    <h3>{student.userId?.name || 'Student'}</h3>
+                    <p>{student.class} | Grade: {student.grade}</p>
+                  </div>
+
+                  <div className="student-sparkline">
+                    <span className="label">Recent Performance:</span>
+                    <div style={{ width: 150, height: 50 }}>
+                      <ResponsiveContainer>
+                        <LineChart data={student.sparklineData?.map((score, i) => ({ i, score })) || []}>
+                          <Line type="monotone" dataKey="score" stroke="#8884d8" strokeWidth={2} dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  <div className="student-topics">
+                    <span className="label">Struggling Topics:</span>
+                    <div className="tags">
+                      {student.performanceMetrics?.weaknesses?.length > 0 ? (
+                        student.performanceMetrics.weaknesses.map(topic => (
+                          <span key={topic} className="tag tag-weak">{topic}</span>
+                        ))
+                      ) : (
+                        <span className="tag tag-good">None</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
+              {filteredStudents.length === 0 && <p>No students found.</p>}
             </div>
           </section>
         )}

@@ -2,16 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dashboardAPI } from '../api';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import '../styles/Dashboard.css';
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function PrincipalDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedClass, setSelectedClass] = useState('all');
   const [announcementForm, setAnnouncementForm] = useState({
     title: '',
     content: '',
@@ -24,11 +22,13 @@ export default function PrincipalDashboard() {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [selectedClass]); // Refetch when class changes
 
   const fetchStats = async () => {
     try {
-      const response = await dashboardAPI.getPrincipalStats();
+      // Pass selectedClass to API (need to update api.js to accept params if not already)
+      // Assuming api.js getPrincipalStats can take query params or we append it
+      const response = await dashboardAPI.getPrincipalStats(selectedClass);
       setStats(response.data);
     } catch (error) {
       console.error('Failed to fetch stats:', error);
@@ -49,7 +49,7 @@ export default function PrincipalDashboard() {
       await dashboardAPI.postAnnouncement(announcementForm);
       alert('Announcement posted successfully!');
       setAnnouncementForm({ title: '', content: '', targetAudience: 'all', targetClass: '' });
-      fetchStats(); // Refresh to show new announcement
+      fetchStats();
     } catch (error) {
       alert('Failed to post announcement');
     }
@@ -75,7 +75,7 @@ export default function PrincipalDashboard() {
           className={activeTab === 'overview' ? 'active' : ''}
           onClick={() => setActiveTab('overview')}
         >
-          Overview & Charts
+          Overview & Analysis
         </button>
         <button
           className={activeTab === 'teachers' ? 'active' : ''}
@@ -107,65 +107,40 @@ export default function PrincipalDashboard() {
               </div>
             </section>
 
-            <div className="charts-grid">
-              <section className="chart-section">
-                <h2>📊 Class-wise Average Marks</h2>
-                <div className="chart-container">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={stats?.classPerformance || []}>
+            <section className="chart-section">
+              <div className="section-header">
+                <h2>📊 Class-wise Topic Performance</h2>
+                <div className="class-selector">
+                  <label>Select Class: </label>
+                  <select
+                    value={selectedClass}
+                    onChange={(e) => setSelectedClass(e.target.value)}
+                  >
+                    <option value="all">All Classes</option>
+                    {stats?.availableClasses?.map(cls => (
+                      <option key={cls} value={cls}>{cls}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="chart-container">
+                {stats?.topicPerformance && stats.topicPerformance.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={stats.topicPerformance}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="_id" />
-                      <YAxis />
+                      <XAxis dataKey="topic" />
+                      <YAxis domain={[0, 100]} />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="avgScore" fill="#8884d8" name="Average Score" />
+                      <Bar dataKey="avgScore" fill="#8884d8" name="Average Score (%)" />
                     </BarChart>
                   </ResponsiveContainer>
-                </div>
-              </section>
-
-              <section className="chart-section">
-                <h2>📈 Enrollment Trends</h2>
-                <div className="chart-container">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={stats?.enrollmentTrends || []}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="_id" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="count" stroke="#82ca9d" name="New Enrollments" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </section>
-
-              <section className="chart-section">
-                <h2>🍰 Grade Distribution</h2>
-                <div className="chart-container">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={stats?.gradeDistribution || []}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="count"
-                        nameKey="_id"
-                      >
-                        {(stats?.gradeDistribution || []).map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </section>
-            </div>
+                ) : (
+                  <p className="no-data">No performance data available for this selection.</p>
+                )}
+              </div>
+            </section>
           </>
         )}
 

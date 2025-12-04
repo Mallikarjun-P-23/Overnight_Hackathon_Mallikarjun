@@ -19,30 +19,31 @@ router.get('/principal/stats', auth, async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
+    const { selectedClass } = req.query;
+
     const totalStudents = await Student.countDocuments();
     const totalTeachers = await Teacher.countDocuments();
 
-    // Class-wise Average Marks (Mock logic as Class model might not exist or needs aggregation)
-    // Assuming Student model has 'class' field
-    const classPerformance = await Student.aggregate([
-      { $group: { _id: "$class", avgScore: { $avg: "$totalScore" }, studentCount: { $sum: 1 } } }
+    // Topic-wise Average Marks for Selected Class (or all if not selected)
+    let matchStage = {};
+    if (selectedClass && selectedClass !== 'all') {
+      matchStage = { class: selectedClass };
+    }
+
+    // We need to aggregate scores from Assignments or Quizzes based on students in the selected class
+    // 1. Find students in the class
+    const studentsInClass = await Student.find(matchStage).select('_id');
+    const studentIds = studentsInClass.map(s => s._id);
+
+    // 2. Aggregate Quiz scores for these students by topic
+    const topicPerformance = await Quiz.aggregate([
+      { $match: { studentId: { $in: studentIds } } },
+      { $group: { _id: "$topic", avgScore: { $avg: "$score" } } },
+      { $project: { topic: "$_id", avgScore: { $round: ["$avgScore", 1] }, _id: 0 } }
     ]);
 
-    // Enrollment Trends (Mock logic - grouping by enrolledAt)
-    const enrollmentTrends = await Student.aggregate([
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$enrolledAt" } },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { _id: 1 } }
-    ]);
-
-    // Grade/Class Distribution
-    const gradeDistribution = await Student.aggregate([
-      { $group: { _id: "$grade", count: { $sum: 1 } } }
-    ]);
+    // Get list of available classes for the dropdown
+    const classes = await Student.distinct('class');
 
     // Get teacher activity heatmap data
     const teachers = await Teacher.find().populate('userId');
@@ -62,9 +63,8 @@ router.get('/principal/stats', auth, async (req, res) => {
     res.json({
       totalStudents,
       totalTeachers,
-      classPerformance,
-      enrollmentTrends,
-      gradeDistribution,
+      topicPerformance,
+      availableClasses: classes,
       activityHeatmap,
       announcements
     });
@@ -249,35 +249,26 @@ router.get('/teacher/reports', auth, async (req, res) => {
     }
     const teacher = await Teacher.findOne({ userId: req.user.userId });
 
-    // Aggregate quiz results for students assigned to this teacher
-    // This is a simplified aggregation
-    const reports = await Quiz.aggregate([
-      {
-        $lookup: {
-          from: 'students',
-          localField: 'studentId',
-          foreignField: '_id',
-          as: 'student'
-        }
-      },
-      { $unwind: '$student' },
-      { $match: { 'student._id': { $in: teacher.assignedStudents } } },
-      {
-        $group: {
-          _id: '$student._id',
-          studentName: { $first: '$student.userId' }, // Need to populate user name, this is tricky in aggregate without another lookup
-          avgScore: { $avg: '$score' },
-          totalQuizzes: { $sum: 1 }
-        }
-      }
-    ]);
-
-    // Better to just fetch students and their performance metrics
+    // Fetch students assigned to this teacher
     const students = await Student.find({ _id: { $in: teacher.assignedStudents } })
       .populate('userId', 'name email')
-      .select('performanceMetrics userId totalScore');
+      .select('performanceMetrics userId totalScore grade class topics'); // Added 'topics' to show struggling tags
 
-    res.json(students);
+    // For each student, fetch their recent quiz scores for the sparkline
+    const studentsWithSparkline = await Promise.all(students.map(async (student) => {
+      const recentQuizzes = await Quiz.find({ studentId: student._id })
+        .sort({ completedAt: 1 }) // Sort by date ascending for graph
+        .limit(10) // Last 10 quizzes
+        .select('score topic');
+
+      return {
+        ...student.toObject(),
+        sparklineData: recentQuizzes.map(q => q.score || 0),
+        recentTopics: recentQuizzes.map(q => q.topic)
+      };
+    }));
+
+    res.json(studentsWithSparkline);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch reports', error: error.message });
   }

@@ -24,7 +24,7 @@ export const authAPI = {
 };
 
 export const dashboardAPI = {
-  getPrincipalStats: () => api.get('/dashboard/principal/stats'),
+  getPrincipalStats: (selectedClass) => api.get('/dashboard/principal/stats', { params: { selectedClass } }),
   getTeacherStats: () => api.get('/dashboard/teacher/stats'),
   getStudentStats: () => api.get('/dashboard/student/stats'),
   getStudents: () => api.get('/dashboard/students'),
