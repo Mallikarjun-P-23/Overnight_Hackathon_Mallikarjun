@@ -1,34 +1,93 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dashboardAPI } from '../api';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  LineChart, Line
+} from 'recharts';
 import '../styles/Dashboard.css';
 
 export default function StudentDashboard() {
   const [stats, setStats] = useState(null);
+  const [quizzes, setQuizzes] = useState([]);
+  const [forumPosts, setForumPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('performance');
+  const [activeTab, setActiveTab] = useState('overview');
+  const [aiQuery, setAiQuery] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [forumForm, setForumForm] = useState({ title: '', content: '', language: 'English', category: 'Discussion' });
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
-    fetchStats();
+    fetchData();
   }, []);
 
-  const fetchStats = async () => {
+  const fetchData = async () => {
     try {
-      const response = await dashboardAPI.getStudentStats();
-      setStats(response.data);
+      const [statsRes, quizzesRes] = await Promise.all([
+        dashboardAPI.getStudentStats(),
+        dashboardAPI.getStudentQuizzes()
+      ]);
+      setStats(statsRes.data);
+      setQuizzes(quizzesRes.data);
     } catch (error) {
-      console.error('Failed to fetch stats:', error);
+      console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchForumPosts = async () => {
+    try {
+      const res = await dashboardAPI.getForumPosts();
+      setForumPosts(res.data);
+    } catch (error) {
+      console.error('Failed to fetch forum posts:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'community') {
+      fetchForumPosts();
+    }
+  }, [activeTab]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/');
+  };
+
+  const handleAiQuery = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await dashboardAPI.aiHelper({ query: aiQuery });
+      setAiResponse(res.data.answer);
+    } catch (error) {
+      setAiResponse('Error: AI service unavailable.');
+    }
+  };
+
+  const handleVideoConvert = async () => {
+    try {
+      const res = await dashboardAPI.videoConvert();
+      alert(res.data.message);
+    } catch (error) {
+      alert('Conversion failed');
+    }
+  };
+
+  const handleCreatePost = async (e) => {
+    e.preventDefault();
+    try {
+      await dashboardAPI.createForumPost(forumForm);
+      alert('Post created!');
+      setForumForm({ title: '', content: '', language: 'English', category: 'Discussion' });
+      fetchForumPosts();
+    } catch (error) {
+      alert('Failed to create post');
+    }
   };
 
   if (loading) return <div className="loading">Loading...</div>;
@@ -37,203 +96,137 @@ export default function StudentDashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-content">
-          <h1>👨‍🎓 Student Dashboard</h1>
-          <p>Your Learning Hub</p>
+          <h1>🎓 Student Dashboard</h1>
+          <p>Learning & Progress Tracker</p>
         </div>
         <div className="user-info">
           <span>Welcome, {user.name}</span>
+          <div className="streak-badge">🔥 Streak: {stats?.student?.streak || 0} days</div>
           <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>
       </header>
 
-      <main className="dashboard-main">
-        {/* Tab Navigation */}
-        <section className="tabs-section">
-          <div className="tab-buttons">
-            <button
-              className={`tab-btn ${activeTab === 'performance' ? 'active' : ''}`}
-              onClick={() => setActiveTab('performance')}
-            >
-              📊 Performance
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'quiz' ? 'active' : ''}`}
-              onClick={() => setActiveTab('quiz')}
-            >
-              ❓ Quiz Generator
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'ai' ? 'active' : ''}`}
-              onClick={() => setActiveTab('ai')}
-            >
-              🤖 AI Helper
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'forum' ? 'active' : ''}`}
-              onClick={() => setActiveTab('forum')}
-            >
-              💬 Community
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'videos' ? 'active' : ''}`}
-              onClick={() => setActiveTab('videos')}
-            >
-              🎥 Video Resources
-            </button>
-          </div>
-        </section>
+      <nav className="dashboard-nav">
+        <button className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')}>Overview</button>
+        <button className={activeTab === 'tools' ? 'active' : ''} onClick={() => setActiveTab('tools')}>AI & Tools</button>
+        <button className={activeTab === 'quizzes' ? 'active' : ''} onClick={() => setActiveTab('quizzes')}>Quizzes</button>
+        <button className={activeTab === 'community' ? 'active' : ''} onClick={() => setActiveTab('community')}>Community</button>
+      </nav>
 
-        {/* Performance Tab */}
-        {activeTab === 'performance' && (
-          <section className="content-section">
-            <h2>📊 Performance Report</h2>
-            <div className="overview-cards">
+      <main className="dashboard-main">
+        {activeTab === 'overview' && (
+          <>
+            <section className="overview-cards">
               <div className="card stat-card">
-                <div className="card-icon">⭐</div>
+                <div className="card-icon">📊</div>
                 <h3>Average Score</h3>
                 <p className="stat-number">{stats?.performanceData?.averageScore || 0}%</p>
-                <p className="stat-label">Overall Performance</p>
               </div>
               <div className="card stat-card">
-                <div className="card-icon">📚</div>
-                <h3>Topics Covered</h3>
-                <p className="stat-number">{stats?.performanceData?.topics?.length || 0}</p>
-                <p className="stat-label">Learning Areas</p>
-              </div>
-              <div className="card stat-card">
-                <div className="card-icon">✅</div>
-                <h3>Assignments</h3>
+                <div className="card-icon">📝</div>
+                <h3>Quizzes Taken</h3>
                 <p className="stat-number">{stats?.totalAssignments || 0}</p>
-                <p className="stat-label">Completed</p>
               </div>
-            </div>
+            </section>
 
-            {/* Topic Performance */}
-            <div className="performance-details">
-              <h3>📈 Topic Breakdown</h3>
-              <div className="topics-performance">
-                {stats?.performanceData?.topics && stats.performanceData.topics.length > 0 ? (
-                  stats.performanceData.topics.map((topic, idx) => (
-                    <div key={idx} className="topic-card">
-                      <div className="topic-header">
-                        <h4>{topic.topic}</h4>
-                        <span className={`status-badge status-${topic.status.replace('_', '-')}`}>
-                          {topic.status === 'Needs Improvement' ? '⚠️' : '✅'} {topic.status}
-                        </span>
-                      </div>
-                      <div className="progress-bar">
-                        <div 
-                          className="progress-fill"
-                          style={{ width: `${topic.avgScore}%` }}
-                        >
-                          {topic.avgScore}%
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="no-data">No performance data yet. Start taking quizzes!</p>
-                )}
+            <section className="chart-section">
+              <h2>📈 Performance by Topic</h2>
+              <div className="chart-container">
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={stats?.performanceData?.topics || []}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="topic" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="avgScore" fill="#82ca9d" name="Avg Score" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-            </div>
-          </section>
+            </section>
+          </>
         )}
 
-        {/* Quiz Generator Tab */}
-        {activeTab === 'quiz' && (
-          <section className="content-section">
-            <h2>❓ Concept-Based Quiz Generator</h2>
-            <div className="feature-card large-card">
-              <div className="feature-icon">🎯</div>
-              <h3>Generate Custom Quizzes</h3>
-              <p>Select a topic to generate a personalized quiz with multiple-choice and short-answer questions.</p>
-              <div className="topics-input">
-                <input 
-                  type="text" 
-                  placeholder="Enter topic (e.g., Algebra, Biology, History)" 
-                  className="topic-input"
+        {activeTab === 'tools' && (
+          <section className="tools-section">
+            <div className="tool-card ai-helper">
+              <h2>🤖 AI Study Helper</h2>
+              <form onSubmit={handleAiQuery}>
+                <textarea
+                  placeholder="Ask a question..."
+                  value={aiQuery}
+                  onChange={e => setAiQuery(e.target.value)}
+                  required
                 />
-                <button className="action-btn">Generate Quiz</button>
-              </div>
-              <p className="feature-note">✨ Currently in demo mode. AI integration coming soon!</p>
+                <button type="submit" className="btn-primary">Ask AI</button>
+              </form>
+              {aiResponse && (
+                <div className="ai-response">
+                  <h4>AI Response:</h4>
+                  <p>{aiResponse}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="tool-card video-converter">
+              <h2>🎥 Video Converter</h2>
+              <p>Convert educational videos to audio or other formats.</p>
+              <button onClick={handleVideoConvert} className="btn-secondary">Start Conversion</button>
             </div>
           </section>
         )}
 
-        {/* AI Helper Tab */}
-        {activeTab === 'ai' && (
-          <section className="content-section">
-            <h2>🤖 AI-Powered Query Assistant</h2>
-            <div className="feature-card large-card">
-              <div className="feature-icon">💬</div>
-              <h3>Ask Your Questions</h3>
-              <p>Get instant answers to your educational questions from our AI ChatBot.</p>
-              <div className="chat-interface">
-                <div className="chat-messages">
-                  <div className="message ai-message">
-                    <p>Hi! I'm your educational AI assistant. Ask me anything about your subjects!</p>
+        {activeTab === 'quizzes' && (
+          <section className="quizzes-section">
+            <h2>📝 Upcoming Quizzes</h2>
+            <div className="quiz-list">
+              {quizzes.length > 0 ? quizzes.map(quiz => (
+                <div key={quiz._id} className="quiz-card">
+                  <h3>{quiz.title}</h3>
+                  <p>Topic: {quiz.topic}</p>
+                  <p>Scheduled: {new Date(quiz.scheduledAt).toLocaleString()}</p>
+                  <button className="btn-primary">Start Quiz</button>
+                </div>
+              )) : <p>No upcoming quizzes.</p>}
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'community' && (
+          <section className="community-section">
+            <div className="forum-form-container">
+              <h2>💬 Start Discussion</h2>
+              <form onSubmit={handleCreatePost} className="forum-form">
+                <input type="text" placeholder="Title" value={forumForm.title} onChange={e => setForumForm({ ...forumForm, title: e.target.value })} required />
+                <textarea placeholder="Content" value={forumForm.content} onChange={e => setForumForm({ ...forumForm, content: e.target.value })} required />
+                <div className="form-row">
+                  <select value={forumForm.language} onChange={e => setForumForm({ ...forumForm, language: e.target.value })}>
+                    <option value="English">English</option>
+                    <option value="Konkani">Konkani</option>
+                    <option value="Marathi">Marathi</option>
+                    <option value="Hindi">Hindi</option>
+                    <option value="Kannada">Kannada</option>
+                  </select>
+                  <select value={forumForm.category} onChange={e => setForumForm({ ...forumForm, category: e.target.value })}>
+                    <option value="Discussion">Discussion</option>
+                    <option value="Q&A">Q&A</option>
+                    <option value="Resource">Resource</option>
+                  </select>
+                </div>
+                <button type="submit" className="btn-primary">Post</button>
+              </form>
+            </div>
+
+            <div className="forum-posts">
+              {forumPosts.map(post => (
+                <div key={post._id} className="post-card">
+                  <h3>{post.title} <span className="badge">{post.language}</span></h3>
+                  <p>{post.content}</p>
+                  <div className="post-meta">
+                    <span>By: {post.author?.name}</span>
+                    <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
-                <div className="chat-input-box">
-                  <input 
-                    type="text" 
-                    placeholder="Ask a question..." 
-                    className="chat-input"
-                  />
-                  <button className="action-btn">Send</button>
-                </div>
-              </div>
-              <p className="feature-note">🚀 AI Integration coming soon! Currently showing demo interface.</p>
-            </div>
-          </section>
-        )}
-
-        {/* Community Forum Tab */}
-        {activeTab === 'forum' && (
-          <section className="content-section">
-            <h2>💬 Language-Based Community Forums</h2>
-            <div className="forums-grid">
-              {['English', 'Konkani', 'Marathi', 'Hindi'].map((lang, idx) => (
-                <div key={idx} className="forum-card">
-                  <div className="forum-icon">🗣️</div>
-                  <h3>{lang} Community</h3>
-                  <p>Join discussions in {lang}</p>
-                  <button className="action-btn">Enter Forum</button>
-                </div>
               ))}
-            </div>
-            <p className="feature-note">Connect with peers, share resources, and learn together!</p>
-          </section>
-        )}
-
-        {/* Video Resources Tab */}
-        {activeTab === 'videos' && (
-          <section className="content-section">
-            <h2>🎥 Regional Language Video Translation</h2>
-            <div className="feature-card large-card">
-              <div className="feature-icon">📹</div>
-              <h3>Upload or Browse Educational Videos</h3>
-              <p>Access videos with translations/subtitles in regional languages.</p>
-              <div className="video-upload">
-                <input 
-                  type="file" 
-                  accept="video/*" 
-                  className="file-input"
-                />
-                <button className="action-btn">Upload Video</button>
-              </div>
-              <div className="sample-videos">
-                <h4>📚 Sample Videos</h4>
-                <div className="video-grid">
-                  {['Math Basics', 'Science Concepts', 'History Lessons'].map((title, idx) => (
-                    <div key={idx} className="video-item">
-                      <div className="video-thumbnail">🎬</div>
-                      <p>{title}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <p className="feature-note">🌐 ML-powered translations coming soon!</p>
             </div>
           </section>
         )}

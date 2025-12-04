@@ -7,6 +7,11 @@ const studentSchema = new mongoose.Schema({
   enrolledAt: { type: Date, default: Date.now },
   totalScore: { type: Number, default: 0 },
   topics: [String],
+  performanceMetrics: {
+    strengths: [String],
+    weaknesses: [String],
+    averageScore: { type: Number, default: 0 }
+  },
   weeklySessions: [{ date: Date, duration: Number }]
 });
 
