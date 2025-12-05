@@ -24,6 +24,7 @@ export default function TeacherDashboard() {
     durationMinutes: 30
   });
   const [reminderForm, setReminderForm] = useState({ title: '', description: '', dueDate: '' });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -104,6 +105,12 @@ export default function TeacherDashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-content">
+          <button 
+            className="sidebar-toggle" 
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          >
+            ☰
+          </button>
           <h1>Teacher Dashboard</h1>
           <p>Classroom Management & Analytics</p>
         </div>
@@ -113,14 +120,73 @@ export default function TeacherDashboard() {
         </div>
       </header>
 
-      <nav className="dashboard-nav">
-        <button className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')}>Overview</button>
-        <button className={activeTab === 'quiz' ? 'active' : ''} onClick={() => setActiveTab('quiz')}>Create Quiz</button>
-        <button className={activeTab === 'students' ? 'active' : ''} onClick={() => setActiveTab('students')}>Student Reports</button>
-        <button className={activeTab === 'reminders' ? 'active' : ''} onClick={() => setActiveTab('reminders')}>Reminders</button>
-      </nav>
+      <div className="dashboard-layout">
+        <nav className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+          <div className="sidebar-content">
+            <button 
+              className={`sidebar-item ${activeTab === 'overview' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('overview')}
+              data-tooltip="Overview"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Overview</span>
+            </button>
+            <button 
+              className={`sidebar-item ${activeTab === 'quiz' ? 'active' : ''}`} 
+              onClick={() => window.open('http://localhost:9002', '_blank')}
+              data-tooltip="Create Quiz"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Create Quiz</span>
+            </button>
+            <button 
+              className={`sidebar-item ${activeTab === 'students' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('students')}
+              data-tooltip="Student Reports"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 4L12 5.1L9 4L3 7V9H5V20C5 21.1 5.9 22 7 22H10C11.1 22 12 21.1 12 20V16H14V20C14 21.1 14.9 22 16 22H19C20.1 22 21 21.1 21 20V9H21ZM7 20V9H9V20H7ZM19 20H17V9H19V20Z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Student Reports</span>
+            </button>
+            <button 
+              className={`sidebar-item ${activeTab === 'videos' ? 'active' : ''}`} 
+              onClick={() => window.open('http://127.0.0.1:3050', '_blank')}
+              data-tooltip="Video Processing"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Video Processing</span>
+            </button>
+            <button 
+              className={`sidebar-item ${activeTab === 'reminders' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('reminders')}
+              data-tooltip="Reminders"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 20A7 7 0 1 1 12 6A7 7 0 0 1 12 20M12 4A9 9 0 1 0 12 22A9 9 0 0 0 12 4M12.5 8H11V14L15.75 16.85L16.5 15.62L12.5 13.25V8Z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Reminders</span>
+            </button>
+          </div>
+        </nav>
 
-      <main className="dashboard-main">
+        <main className={`dashboard-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         {activeTab === 'overview' && (
           <>
             <section className="overview-cards">
@@ -251,7 +317,8 @@ export default function TeacherDashboard() {
             </div>
           </section>
         )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

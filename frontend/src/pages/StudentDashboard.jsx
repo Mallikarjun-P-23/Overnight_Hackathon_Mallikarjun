@@ -16,6 +16,7 @@ export default function StudentDashboard() {
   const [aiQuery, setAiQuery] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [forumForm, setForumForm] = useState({ title: '', content: '', language: 'English', category: 'Discussion' });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -69,14 +70,7 @@ export default function StudentDashboard() {
     }
   };
 
-  const handleVideoConvert = async () => {
-    try {
-      const res = await dashboardAPI.videoConvert();
-      alert(res.data.message);
-    } catch (error) {
-      alert('Conversion failed');
-    }
-  };
+
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
@@ -96,6 +90,12 @@ export default function StudentDashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-content">
+          <button 
+            className="sidebar-toggle" 
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          >
+            ☰
+          </button>
           <h1>Student Dashboard</h1>
           <p>Learning & Progress Tracker</p>
         </div>
@@ -106,14 +106,76 @@ export default function StudentDashboard() {
         </div>
       </header>
 
-      <nav className="dashboard-nav">
-        <button className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')}>Overview</button>
-        <button className={activeTab === 'tools' ? 'active' : ''} onClick={() => setActiveTab('tools')}>AI & Tools</button>
-        <button className={activeTab === 'quizzes' ? 'active' : ''} onClick={() => setActiveTab('quizzes')}>Quizzes</button>
-        <button className={activeTab === 'community' ? 'active' : ''} onClick={() => setActiveTab('community')}>Community</button>
-      </nav>
+      <div className="dashboard-layout">
+        <nav className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+          <div className="sidebar-content">
+            <button 
+              className={`sidebar-item ${activeTab === 'overview' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('overview')}
+              data-tooltip="Overview"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Overview</span>
+            </button>
+            <button 
+              className={`sidebar-item ${activeTab === 'tools' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('tools')}
+              data-tooltip="AI & Tools"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.5 6c-2.61.7-5.67 1-8.5 1s-5.89-.3-8.5-1L3 8c0 4 2.91 6.71 6 7.5V18h6v-2.5c3.09-.79 6-3.5 6-7.5l-.5-2z"/>
+                  <circle cx="9" cy="12" r="1"/>
+                  <circle cx="15" cy="12" r="1"/>
+                  <path d="M12 15.5c-1.25 0-2.27-.86-2.27-2h4.54c0 1.14-1.02 2-2.27 2z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">AI & Tools</span>
+            </button>
+            <button 
+              className={`sidebar-item ${activeTab === 'quizzes' ? 'active' : ''}`} 
+              onClick={() => window.open('http://localhost:9002', '_blank')}
+              data-tooltip="Quizzes"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Quizzes</span>
+            </button>
+            <button 
+              className={`sidebar-item ${activeTab === 'videos' ? 'active' : ''}`} 
+              onClick={() => window.open('http://127.0.0.1:3050', '_blank')}
+              data-tooltip="Video Processing"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Video Processing</span>
+            </button>
+            <button 
+              className={`sidebar-item ${activeTab === 'community' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('community')}
+              data-tooltip="Community"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H16.5c-.8 0-1.54.5-1.85 1.26l-1.92 5.63A2 2 0 0 0 14.62 17H16v5h4zM12.5 11.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5S11 9.17 11 10s.67 1.5 1.5 1.5zM5.5 6c1.11 0 2-.89 2-2s-.89-2-2-2-2 .89-2 2 .89 2 2 2zm2 16v-7H9l-1.5-4.5A2 2 0 0 0 5.62 9H3.5C2.67 9 2 9.67 2 10.5l1.24 3.86c.25.78 1.01 1.3 1.85 1.3H7v6.34h.5z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Community</span>
+            </button>
+          </div>
+        </nav>
 
-      <main className="dashboard-main">
+        <main className={`dashboard-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         {activeTab === 'overview' && (
           <>
             <section className="overview-cards">
@@ -167,11 +229,7 @@ export default function StudentDashboard() {
               )}
             </div>
 
-            <div className="tool-card video-converter">
-              <h2>Video Converter</h2>
-              <p>Convert educational videos to audio or other formats.</p>
-              <button onClick={handleVideoConvert} className="btn-secondary">Start Conversion</button>
-            </div>
+
           </section>
         )}
 
@@ -184,7 +242,7 @@ export default function StudentDashboard() {
                   <h3>{quiz.title}</h3>
                   <p>Topic: {quiz.topic}</p>
                   <p>Scheduled: {new Date(quiz.scheduledAt).toLocaleString()}</p>
-                  <button className="btn-primary">Start Quiz</button>
+                  <button className="btn-primary" onClick={() => window.open('http://localhost:9002', '_blank')}>Start Quiz</button>
                 </div>
               )) : <p>No upcoming quizzes.</p>}
             </div>
@@ -230,7 +288,8 @@ export default function StudentDashboard() {
             </div>
           </section>
         )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

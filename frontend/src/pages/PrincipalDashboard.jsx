@@ -17,6 +17,7 @@ export default function PrincipalDashboard() {
     targetClass: ''
   });
   const [activeTab, setActiveTab] = useState('overview');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -61,6 +62,12 @@ export default function PrincipalDashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-content">
+          <button 
+            className="sidebar-toggle" 
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          >
+            ☰
+          </button>
           <h1>Principal Dashboard</h1>
           <p>School Administration Overview</p>
         </div>
@@ -70,28 +77,61 @@ export default function PrincipalDashboard() {
         </div>
       </header>
 
-      <nav className="dashboard-nav">
-        <button
-          className={activeTab === 'overview' ? 'active' : ''}
-          onClick={() => setActiveTab('overview')}
-        >
-          Overview & Analysis
-        </button>
-        <button
-          className={activeTab === 'teachers' ? 'active' : ''}
-          onClick={() => setActiveTab('teachers')}
-        >
-          Teacher Performance
-        </button>
-        <button
-          className={activeTab === 'announcements' ? 'active' : ''}
-          onClick={() => setActiveTab('announcements')}
-        >
-          Announcements
-        </button>
-      </nav>
+      <div className="dashboard-layout">
+        <nav className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+          <div className="sidebar-content">
+            <button 
+              className={`sidebar-item ${activeTab === 'overview' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('overview')}
+              data-tooltip="Overview & Analysis"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Overview & Analysis</span>
+            </button>
+            <button 
+              className={`sidebar-item ${activeTab === 'teachers' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('teachers')}
+              data-tooltip="Teacher Performance"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 3L1 9L5 11.18V17.18L12 21L19 17.18V11.18L21 10.09V17H23V9L12 3M18.82 9L12 12.72L5.18 9L12 5.28L18.82 9M17 16L12 18.72L7 16V12.27L12 15L17 12.27V16Z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Teacher Performance</span>
+            </button>
+            <button 
+              className={`sidebar-item ${activeTab === 'videos' ? 'active' : ''}`} 
+              onClick={() => window.open('http://127.0.0.1:3050', '_blank')}
+              data-tooltip="Video Processing"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Video Processing</span>
+            </button>
+            <button 
+              className={`sidebar-item ${activeTab === 'announcements' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('announcements')}
+              data-tooltip="Announcements"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Announcements</span>
+            </button>
+          </div>
+        </nav>
 
-      <main className="dashboard-main">
+        <main className={`dashboard-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         {activeTab === 'overview' && (
           <>
             <section className="overview-cards">
@@ -237,7 +277,8 @@ export default function PrincipalDashboard() {
             </div>
           </section>
         )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

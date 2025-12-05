@@ -1,0 +1,8 @@
+flask
+werkzeug
+ffmpeg-python
+whisper     # OpenAI whisper: pip install -U openai-whisper
+torch       # choose appropriate install for your system: CPU or GPU
+googletrans==4.0.0rc1
+gTTS
+pysrt

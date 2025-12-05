@@ -31,7 +31,8 @@ export default function Login() {
         const response = await authAPI.login(formData.email, formData.password);
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
-        navigate(`/dashboard/${response.data.user.role}`);
+        // Force a page reload to ensure authentication state updates
+        window.location.href = `/dashboard/${response.data.user.role}`;
       } else {
         const response = await authAPI.register(formData.name, formData.email, formData.password);
         setIsLogin(true);
