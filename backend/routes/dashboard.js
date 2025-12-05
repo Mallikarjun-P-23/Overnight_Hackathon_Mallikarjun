@@ -135,43 +135,185 @@ router.get('/student/stats', auth, async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    const student = await Student.findOne({ userId: req.user.userId });
+    const QuizResult = require('../models/QuizResult');
+    
+    let student = await Student.findOne({ userId: req.user.userId });
+    if (!student) {
+      // Create a basic student record if it doesn't exist
+      student = new Student({ 
+        userId: req.user.userId,
+        performanceMetrics: {
+          totalQuizzesTaken: 0,
+          averageScore: 0,
+          streakData: { currentStreak: 0, longestStreak: 0 }
+        },
+        achievements: []
+      });
+      await student.save();
+    }
+    
     const assignments = await Assignment.find({ studentId: student._id });
+    
+    // Get quiz results for comprehensive analytics
+    const quizResults = await QuizResult.find({ userId: req.user.userId })
+      .sort({ completedAt: -1 })
+      .limit(50); // Last 50 quizzes for analysis
 
     const performanceData = {
       topics: [],
-      averageScore: 0
+      averageScore: 0,
+      recentPerformance: [],
+      topicProgress: {},
+      streakData: student?.performanceMetrics?.streakData || { currentStreak: 0, longestStreak: 0 },
+      achievements: student?.achievements || []
     };
 
+    // Combine assignment and quiz data
+    const allScores = [];
+    const topicScores = {};
+
+    // Process assignments
     if (assignments.length > 0) {
-      const topicScores = {};
       assignments.forEach(a => {
-        if (!topicScores[a.topic]) {
-          topicScores[a.topic] = { scores: [], count: 0 };
+        if (a.score !== undefined) {
+          allScores.push(a.score);
+          if (!topicScores[a.topic]) {
+            topicScores[a.topic] = { scores: [], count: 0, type: 'assignment' };
+          }
+          topicScores[a.topic].scores.push(a.score);
         }
-        topicScores[a.topic].scores.push(a.score || 0);
+      });
+    }
+
+    // Process quiz results
+    if (quizResults.length > 0) {
+      quizResults.forEach(qr => {
+        allScores.push(qr.score);
+        if (!topicScores[qr.topic]) {
+          topicScores[qr.topic] = { scores: [], count: 0, type: 'quiz' };
+        }
+        topicScores[qr.topic].scores.push(qr.score);
+        topicScores[qr.topic].count++;
       });
 
-      performanceData.topics = Object.entries(topicScores).map(([topic, data]) => ({
-        topic,
-        avgScore: Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length),
-        status: Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length) >= 70 ? 'Good' : 'Needs Improvement'
-      }));
+      // Recent performance trend (last 10 quizzes)
+      performanceData.recentPerformance = quizResults.slice(0, 10).map(qr => ({
+        score: qr.score,
+        topic: qr.topic,
+        date: qr.completedAt,
+        quizTitle: qr.quizTitle,
+        timeTaken: qr.timeTaken
+      })).reverse(); // Reverse to show chronological order
+    }
 
+    // Calculate topic-wise performance
+    performanceData.topics = Object.entries(topicScores).map(([topic, data]) => {
+      const avgScore = Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length);
+      const improvement = data.scores.length > 1 ? 
+        Math.round(((data.scores[data.scores.length - 1] - data.scores[0]) / data.scores[0]) * 100) : 0;
+      
+      return {
+        topic,
+        avgScore,
+        totalAttempts: data.scores.length,
+        bestScore: Math.max(...data.scores),
+        worstScore: Math.min(...data.scores),
+        improvement: improvement,
+        status: avgScore >= 80 ? 'Excellent' : avgScore >= 70 ? 'Good' : avgScore >= 60 ? 'Fair' : 'Needs Improvement',
+        lastAttempt: data.scores[data.scores.length - 1],
+        trend: data.scores.length > 1 ? (data.scores[data.scores.length - 1] > data.scores[data.scores.length - 2] ? 'up' : 'down') : 'stable'
+      };
+    });
+
+    // Calculate overall average score
+    if (allScores.length > 0) {
       performanceData.averageScore = Math.round(
-        assignments.reduce((sum, a) => sum + (a.score || 0), 0) / assignments.length
+        allScores.reduce((sum, score) => sum + score, 0) / allScores.length
       );
     }
+
+    // Topic progress analysis
+    performanceData.topicProgress = performanceData.topics.reduce((acc, topic) => {
+      acc[topic.topic] = {
+        mastery: topic.avgScore >= 80 ? 'mastered' : topic.avgScore >= 70 ? 'proficient' : 'learning',
+        scoreHistory: topicScores[topic.topic].scores,
+        recommendation: topic.avgScore < 70 ? 
+          `Focus more on ${topic.topic} - consider reviewing basic concepts` :
+          `Great progress in ${topic.topic} - try advanced challenges`
+      };
+      return acc;
+    }, {});
+
+    // Calculate additional metrics
+    const additionalMetrics = {
+      totalQuizzesTaken: quizResults.length,
+      totalAssignments: assignments.length,
+      bestOverallScore: allScores.length > 0 ? Math.max(...allScores) : 0,
+      worstOverallScore: allScores.length > 0 ? Math.min(...allScores) : 0,
+      consistencyScore: calculateConsistency(allScores),
+      weeklyActivity: getWeeklyActivity(quizResults),
+      strongestTopics: performanceData.topics
+        .filter(t => t.avgScore >= 80)
+        .sort((a, b) => b.avgScore - a.avgScore)
+        .slice(0, 3)
+        .map(t => t.topic),
+      improvementNeeded: performanceData.topics
+        .filter(t => t.avgScore < 70)
+        .sort((a, b) => a.avgScore - b.avgScore)
+        .slice(0, 3)
+        .map(t => t.topic)
+    };
 
     res.json({
       student: student,
       performanceData,
-      totalAssignments: assignments.length
+      additionalMetrics,
+      totalAssignments: assignments.length,
+      totalQuizzes: quizResults.length
     });
   } catch (error) {
+    console.error('Error in student stats:', error);
     res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
   }
 });
+
+// Helper function to calculate consistency score
+function calculateConsistency(scores) {
+  if (scores.length < 2) return 100;
+  
+  const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
+  const standardDeviation = Math.sqrt(variance);
+  
+  // Convert to consistency score (lower deviation = higher consistency)
+  return Math.max(0, Math.round(100 - (standardDeviation * 2)));
+}
+
+// Helper function to get weekly activity
+function getWeeklyActivity(quizResults) {
+  const weeklyData = {};
+  const now = new Date();
+  
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    weeklyData[dateStr] = 0;
+  }
+  
+  quizResults.forEach(result => {
+    const dateStr = result.completedAt.toISOString().split('T')[0];
+    if (weeklyData.hasOwnProperty(dateStr)) {
+      weeklyData[dateStr]++;
+    }
+  });
+  
+  return Object.entries(weeklyData).map(([date, count]) => ({
+    date,
+    count,
+    day: new Date(date).toLocaleDateString('en-US', { weekday: 'short' })
+  }));
+}
 
 // Get all students (for Teacher)
 router.get('/students', auth, async (req, res) => {

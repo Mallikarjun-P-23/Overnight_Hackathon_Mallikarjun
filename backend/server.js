@@ -6,6 +6,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
 const forumRoutes = require('./routes/forum');
+const quizResultRoutes = require('./routes/quizResults');
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/forum', forumRoutes);
+app.use('/api/quiz-results', quizResultRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
