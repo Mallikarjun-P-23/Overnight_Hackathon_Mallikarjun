@@ -213,6 +213,9 @@ dmypy.json
 uploads/
 */uploads/
 myvedio/uploads/
+static/
+*/static/
+myvedio/static/
 temp/
 tmp/
 
