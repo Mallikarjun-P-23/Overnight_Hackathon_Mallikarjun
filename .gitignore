@@ -209,10 +209,22 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
-# Uploads and temporary files
+# File uploads and temporary files
 uploads/
-*.tmp
-*.temp
+*/uploads/
+myvedio/uploads/
+temp/
+tmp/
+
+# Large files and media
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.m4v
+*.flv
+*.wmv
 
 # OS generated files
 .DS_Store
