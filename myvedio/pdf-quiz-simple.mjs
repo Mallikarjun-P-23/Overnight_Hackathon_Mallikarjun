@@ -8,17 +8,30 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import dotenv from 'dotenv';
 
 const require = createRequire(import.meta.url);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const genAI = new GoogleGenerativeAI("AIzaSyD8kpqR6N2fHXYbdDZQ9p7I283i-3E2zU8");
+// Load environment variables
+dotenv.config();
+
+// Check if API key is provided
+if (!process.env.GEMINI_API_KEY) {
+    console.error("❌ GEMINI_API_KEY is not set in the .env file");
+    console.error("Please add your Gemini API key to the .env file:");
+    console.error("GEMINI_API_KEY=your_api_key_here");
+    process.exit(1);
+}
+
+// Initialize Google Generative AI with API key from environment
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Express app setup
 const app = express();
-const port = 9002;
+const port = process.env.PORT || 9002;
 
 // Configure multer for PDF uploads
 const upload = multer({
