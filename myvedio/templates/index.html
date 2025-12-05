@@ -1,0 +1,536 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Video Processing - Educational Excellence Hub</title>
+  <style>
+    :root {
+      --primary-bg: #0A1A2F;
+      --primary-accent: #F2C94C;
+      --primary-text: #FFFFFF;
+      --secondary-dark-blue: #112240;
+      --soft-blue-highlight: #1E3A5F;
+      --muted-text-grey: #CBD6E2;
+      --glass-bg: rgba(17, 34, 64, 0.7);
+      --glass-border: rgba(242, 201, 76, 0.3);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--primary-bg);
+      color: var(--primary-text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: var(--secondary-dark-blue);
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--soft-blue-highlight);
+      box-shadow: var(--shadow-md);
+    }
+
+    .header h1 {
+      color: var(--primary-accent);
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      color: var(--muted-text-grey);
+      font-size: 1.1rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--soft-blue-highlight);
+    }
+
+    .tab {
+      padding: 1rem 1.5rem;
+      background: transparent;
+      color: var(--muted-text-grey);
+      cursor: pointer;
+      border: none;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .tab:hover {
+      color: var(--primary-accent);
+      background: var(--soft-blue-highlight);
+    }
+
+    .tab.active {
+      color: var(--primary-accent);
+      border-bottom-color: var(--primary-accent);
+      font-weight: 600;
+    }
+
+    .form-section {
+      background: var(--secondary-dark-blue);
+      padding: 2rem;
+      margin: 1.5rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--soft-blue-highlight);
+    }
+
+    .form-section h3 {
+      color: var(--primary-accent);
+      margin-bottom: 1.5rem;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    label {
+      display: block;
+      margin: 1rem 0 0.5rem 0;
+      color: var(--primary-text);
+      font-weight: 500;
+    }
+
+    input[type="file"], 
+    input[type="url"], 
+    select {
+      width: 100%;
+      padding: 0.875rem;
+      background: var(--soft-blue-highlight);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: var(--primary-text);
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    input[type="file"]:focus, 
+    input[type="url"]:focus, 
+    select:focus {
+      outline: none;
+      border-color: var(--primary-accent);
+      box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.1);
+    }
+
+    button {
+      background: var(--primary-accent);
+      color: var(--primary-bg);
+      padding: 0.875rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 1rem 0.5rem 1rem 0;
+      transition: all 0.2s;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background: #E8C15B;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    button:disabled {
+      background: #4A5568;
+      color: #9CA3AF;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .result {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .error {
+      color: #FF6B6B;
+      background: rgba(255, 107, 107, 0.1);
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      margin: 1rem 0;
+    }
+
+    .success {
+      color: #51CF66;
+      background: rgba(81, 207, 102, 0.1);
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(81, 207, 102, 0.3);
+      margin: 1rem 0;
+    }
+
+    .progress {
+      margin: 1.5rem 0;
+      background: var(--soft-blue-highlight);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--primary-accent);
+      transition: width 0.3s;
+    }
+
+    .icon {
+      width: 20px;
+      height: 20px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"/>
+            </svg>
+            Video Processing Hub
+        </h1>
+        <p>Transform your educational videos with AI-powered transcription, translation, and localization</p>
+    </div>
+
+    <div class="container">
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('upload')">
+                <svg class="icon" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+                Upload Video
+            </button>
+            <button class="tab" onclick="switchTab('youtube')">
+                <svg class="icon" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+                    <path d="M10,15L15.19,12L10,9V15M21.56,7.17C21.69,7.64 21.78,8.27 21.84,9.07C21.91,9.87 21.94,10.56 21.94,11.16L22,12C22,14.19 21.84,15.8 21.56,16.83C21.31,17.73 20.73,18.31 19.83,18.56C19.36,18.69 18.5,18.78 17.18,18.84C15.88,18.91 14.69,18.94 13.59,18.94L12,19C7.81,19 5.2,18.84 4.17,18.56C3.27,18.31 2.69,17.73 2.44,16.83C2.31,16.36 2.22,15.73 2.16,14.93C2.09,14.13 2.06,13.44 2.06,12.84L2,12C2,9.81 2.16,8.2 2.44,7.17C2.69,6.27 3.27,5.69 4.17,5.44C4.64,5.31 5.5,5.22 6.82,5.16C8.12,5.09 9.31,5.06 10.41,5.06L12,5C16.19,5 18.8,5.16 19.83,5.44C20.73,5.69 21.31,6.27 21.56,7.17Z"/>
+                </svg>
+                YouTube Video
+            </button>
+        </div>
+
+        <!-- Upload Video Tab -->
+        <div id="upload-tab" class="tab-content active">
+            <div class="card">
+                <div class="form-section">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        </svg>
+                        Upload Video File
+                    </h3>
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <label for="file">Choose video file:</label>
+                        <input type="file" id="file" name="file" accept="video/*" required>
+                    
+                    <label for="target_lang_upload">Target language:</label>
+                    <select id="target_lang_upload" name="target_lang">
+                        <option value="hi">Hindi (हिन्दी)</option>
+                        <option value="mr">Marathi (मराठी)</option>
+                        <option value="ta">Tamil (தமிழ்)</option>
+                        <option value="te">Telugu (తెలుగు)</option>
+                        <option value="bn">Bengali (বাংলা)</option>
+                        <option value="gu">Gujarati (ગુજરાતી)</option>
+                        <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                        <option value="ml">Malayalam (മലയാളം)</option>
+                        <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                        <option value="ur">Urdu (اردو)</option>
+                        <option value="es">Spanish (Español)</option>
+                        <option value="fr">French (Français)</option>
+                        <option value="de">German (Deutsch)</option>
+                        <option value="zh">Chinese (中文)</option>
+                        <option value="ja">Japanese (日本語)</option>
+                        <option value="ko">Korean (한국어)</option>
+                        <option value="ar">Arabic (العربية)</option>
+                    </select>
+                    
+                    <label>
+                        <input type="checkbox" id="burn_subs_upload" name="burn_subs"> Burn subtitles into video
+                    </label>
+                    
+                    <button type="submit" id="uploadBtn">🚀 Process Video</button>
+                </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- YouTube Video Tab -->
+        <div id="youtube-tab" class="tab-content">
+            <div class="card">
+                <div class="form-section">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M10,15L15.19,12L10,9V15M21.56,7.17C21.69,7.64 21.78,8.27 21.84,9.07C21.91,9.87 21.94,10.56 21.94,11.16L22,12C22,14.19 21.84,15.8 21.56,16.83C21.31,17.73 20.73,18.31 19.83,18.56C19.36,18.69 18.5,18.78 17.18,18.84C15.88,18.91 14.69,18.94 13.59,18.94L12,19C7.81,19 5.2,18.84 4.17,18.56C3.27,18.31 2.69,17.73 2.44,16.83C2.31,16.36 2.22,15.73 2.16,14.93C2.09,14.13 2.06,13.44 2.06,12.84L2,12C2,9.81 2.16,8.2 2.44,7.17C2.69,6.27 3.27,5.69 4.17,5.44C4.64,5.31 5.5,5.22 6.82,5.16C8.12,5.09 9.31,5.06 10.41,5.06L12,5C16.19,5 18.8,5.16 19.83,5.44C20.73,5.69 21.31,6.27 21.56,7.17Z"/>
+                        </svg>
+                        YouTube Video Processing
+                    </h3>
+                    <form id="youtubeForm">
+                        <label for="youtube_url">YouTube URL:</label>
+                        <input type="url" id="youtube_url" name="youtube_url" placeholder="https://www.youtube.com/watch?v=..." required>
+                    
+                    <label for="target_lang_youtube">Target language:</label>
+                    <select id="target_lang_youtube" name="target_lang">
+                        <option value="hi">Hindi (हिन्दी)</option>
+                        <option value="mr">Marathi (मराठी)</option>
+                        <option value="ta">Tamil (தமிழ்)</option>
+                        <option value="te">Telugu (తెలుగు)</option>
+                        <option value="bn">Bengali (বাংলা)</option>
+                        <option value="gu">Gujarati (ગુજરાતી)</option>
+                        <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                        <option value="ml">Malayalam (മലയാളം)</option>
+                        <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                        <option value="ur">Urdu (اردو)</option>
+                        <option value="es">Spanish (Español)</option>
+                        <option value="fr">French (Français)</option>
+                        <option value="de">German (Deutsch)</option>
+                        <option value="zh">Chinese (中文)</option>
+                        <option value="ja">Japanese (日本語)</option>
+                        <option value="ko">Korean (한국어)</option>
+                        <option value="ar">Arabic (العربية)</option>
+                    </select>
+                    
+                    <label>
+                        <input type="checkbox" id="burn_subs_youtube" name="burn_subs"> Burn subtitles into video
+                    </label>
+                    
+                    <button type="submit" id="youtubeBtn">🚀 Process YouTube Video</button>
+                </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="progress" style="display:none;">
+            <h3 style="color: var(--primary-accent); margin-bottom: 1rem;">
+                <svg class="icon" viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
+                    <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
+                </svg>
+                Processing Video...
+            </h3>
+            <p style="color: var(--muted-text-grey); margin-bottom: 1rem;">This may take several minutes depending on video length.</p>
+            <div class="progress">
+                <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        </style>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Add active class to selected tab
+            event.target.classList.add('active');
+        }
+
+        // Upload form handler
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const uploadBtn = document.getElementById('uploadBtn');
+            const progress = document.getElementById('progress');
+            const result = document.getElementById('result');
+            
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Processing...';
+            progress.style.display = 'block';
+            result.innerHTML = '';
+            
+            // Simulate progress
+            let progressWidth = 0;
+            const progressInterval = setInterval(() => {
+                progressWidth += Math.random() * 10;
+                if (progressWidth > 90) progressWidth = 90;
+                document.getElementById('progressBar').style.width = progressWidth + '%';
+            }, 1000);
+            
+            fetch('/process', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                document.getElementById('progressBar').style.width = '100%';
+                
+                if (data.error) {
+                    result.innerHTML = '<div class="error">❌ Error: ' + data.error + '</div>';
+                } else {
+                    result.innerHTML = `
+                        <div class="result">
+                            <div class="success">✅ Video processed successfully!</div>
+                            <h3>📊 Results:</h3>
+                            <p><strong>Original Language:</strong> ${data.original_language}</p>
+                            <p><strong>Translated Text Preview:</strong></p>
+                            <div style="background: white; padding: 15px; border-radius: 5px; margin: 10px 0; max-height: 200px; overflow-y: auto;">
+                                ${data.translated_text_preview}
+                            </div>
+                            <h3>📥 Download Files:</h3>
+                            <p><a href="${data.video_url}" download>🎬 Download Translated Video</a></p>
+                            <p><a href="${data.srt_url}" download>📄 Download Subtitles (SRT)</a></p>
+                            ${data.burned_video_url ? `<p><a href="${data.burned_video_url}" download>🔥 Download Video with Burned Subtitles</a></p>` : ''}
+                            <h3>🎥 Preview:</h3>
+                            <video controls style="width: 100%; max-width: 600px;">
+                                <source src="${data.video_url}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `;
+                }
+                
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '🚀 Process Video';
+                progress.style.display = 'none';
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                result.innerHTML = '<div class="error">❌ Error: ' + error.message + '</div>';
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '🚀 Process Video';
+                progress.style.display = 'none';
+            });
+        });
+
+        // YouTube form handler
+        document.getElementById('youtubeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const youtubeUrl = document.getElementById('youtube_url').value;
+            const targetLang = document.getElementById('target_lang_youtube').value;
+            const burnSubs = document.getElementById('burn_subs_youtube').checked;
+            
+            const youtubeBtn = document.getElementById('youtubeBtn');
+            const progress = document.getElementById('progress');
+            const result = document.getElementById('result');
+            
+            youtubeBtn.disabled = true;
+            youtubeBtn.textContent = 'Processing...';
+            progress.style.display = 'block';
+            result.innerHTML = '';
+            
+            // Simulate progress
+            let progressWidth = 0;
+            const progressInterval = setInterval(() => {
+                progressWidth += Math.random() * 5; // Slower progress for YouTube (longer process)
+                if (progressWidth > 85) progressWidth = 85;
+                document.getElementById('progressBar').style.width = progressWidth + '%';
+            }, 2000);
+            
+            fetch('/process_youtube', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    youtube_url: youtubeUrl,
+                    target_lang: targetLang,
+                    burn_subs: burnSubs
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                document.getElementById('progressBar').style.width = '100%';
+                
+                if (data.error) {
+                    result.innerHTML = '<div class="error">❌ Error: ' + data.error + '</div>';
+                } else {
+                    result.innerHTML = `
+                        <div class="result">
+                            <div class="success">✅ YouTube video processed successfully!</div>
+                            <h3>📊 Results:</h3>
+                            <p><strong>Video Title:</strong> ${data.video_title}</p>
+                            <p><strong>Original Language:</strong> ${data.original_language}</p>
+                            <p><strong>Translated Text Preview:</strong></p>
+                            <div style="background: white; padding: 15px; border-radius: 5px; margin: 10px 0; max-height: 200px; overflow-y: auto;">
+                                ${data.translated_text_preview}
+                            </div>
+                            <h3>📥 Download Files:</h3>
+                            <p><a href="${data.video_url}" download>🎬 Download Translated Video</a></p>
+                            <p><a href="${data.srt_url}" download>📄 Download Subtitles (SRT)</a></p>
+                            ${data.burned_video_url ? `<p><a href="${data.burned_video_url}" download>🔥 Download Video with Burned Subtitles</a></p>` : ''}
+                            <h3>🎥 Preview:</h3>
+                            <video controls style="width: 100%; max-width: 600px;">
+                                <source src="${data.video_url}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `;
+                }
+                
+                youtubeBtn.disabled = false;
+                youtubeBtn.textContent = '🚀 Process YouTube Video';
+                progress.style.display = 'none';
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                result.innerHTML = '<div class="error">❌ Error: ' + error.message + '</div>';
+                youtubeBtn.disabled = false;
+                youtubeBtn.textContent = '🚀 Process YouTube Video';
+                progress.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

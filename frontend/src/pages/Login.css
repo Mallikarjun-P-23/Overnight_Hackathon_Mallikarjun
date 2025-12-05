@@ -1,0 +1,155 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #0A1A2F;
+  padding: 20px;
+}
+
+.login-card {
+  background: #112240;
+  border-radius: 15px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid #E8C15B;
+  padding: 50px 40px;
+  width: 100%;
+  max-width: 400px;
+  animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.login-header h1 {
+  color: #FFFFFF;
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.login-header p {
+  color: #E8C15B;
+  font-size: 14px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.form-input {
+  padding: 12px 15px;
+  border: 2px solid #E8C15B;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s;
+  font-family: inherit;
+  background: #1E3A5F;
+  color: #CBD6E2;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #F2C94C;
+  box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.1);
+}
+
+.form-input::placeholder {
+  color: #CBD6E2;
+  opacity: 0.7;
+}
+
+.error-message {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #fee2e2;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.submit-btn {
+  padding: 12px;
+  background: #F2C94C;
+  color: #0A1A2F;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(242, 201, 76, 0.4);
+  background: #E8C15B;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.toggle-auth {
+  text-align: center;
+  margin: 20px 0;
+  padding: 15px 0;
+  border-top: 1px solid #1E3A5F;
+  border-bottom: 1px solid #1E3A5F;
+}
+
+.toggle-auth p {
+  color: #CBD6E2;
+  font-size: 14px;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #F2C94C;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: underline;
+}
+
+.toggle-btn:hover {
+  color: #E8C15B;
+}
+
+.email-examples {
+  background: #1E3A5F;
+  border: 1px solid #4A90E2;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-size: 13px;
+}
+
+.email-examples h4 {
+  color: #E8C15B;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.email-examples p {
+  color: #CBD6E2;
+  margin: 4px 0;
+}
