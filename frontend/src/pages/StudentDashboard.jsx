@@ -5,6 +5,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   LineChart, Line
 } from 'recharts';
+import QuizResultHandler from '../components/QuizResultHandler';
+import QuizAnalytics from '../components/QuizAnalytics';
 import '../styles/Dashboard.css';
 
 export default function StudentDashboard() {
@@ -21,15 +23,20 @@ export default function StudentDashboard() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
+    console.log('Student Dashboard mounted, current user:', user);
+    console.log('Token from localStorage:', localStorage.getItem('token'));
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
+      console.log('Fetching student data...');
       const [statsRes, quizzesRes] = await Promise.all([
         dashboardAPI.getStudentStats(),
         dashboardAPI.getStudentQuizzes()
       ]);
+      console.log('Stats response:', statsRes.data);
+      console.log('Quizzes response:', quizzesRes.data);
       setStats(statsRes.data);
       setQuizzes(quizzesRes.data);
     } catch (error) {
@@ -161,6 +168,18 @@ export default function StudentDashboard() {
               <span className="sidebar-text">Video Processing</span>
             </button>
             <button 
+              className={`sidebar-item ${activeTab === 'analytics' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('analytics')}
+              data-tooltip="Quiz Analytics"
+            >
+              <span className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3,3V21H21V19H5V3H3M9,17H7V10H9V17M13,17H11V7H13V17M17,17H15V13H17V17M21,17H19V4H21V17Z"/>
+                </svg>
+              </span>
+              <span className="sidebar-text">Analytics</span>
+            </button>
+            <button 
               className={`sidebar-item ${activeTab === 'community' ? 'active' : ''}`} 
               onClick={() => setActiveTab('community')}
               data-tooltip="Community"
@@ -171,6 +190,14 @@ export default function StudentDashboard() {
                 </svg>
               </span>
               <span className="sidebar-text">Community</span>
+            </button>
+            <button 
+              className={`sidebar-item ${activeTab === 'debug' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('debug')}
+              data-tooltip="Debug"
+            >
+              <span className="sidebar-icon">🔧</span>
+              <span className="sidebar-text">Debug</span>
             </button>
           </div>
         </nav>
@@ -187,7 +214,7 @@ export default function StudentDashboard() {
               <div className="card stat-card">
                 <div className="card-icon"></div>
                 <h3>Quizzes Taken</h3>
-                <p className="stat-number">{stats?.totalAssignments || 0}</p>
+                <p className="stat-number">{stats?.totalQuizzes || stats?.additionalMetrics?.totalQuizzesTaken || 0}</p>
               </div>
             </section>
 
@@ -249,6 +276,86 @@ export default function StudentDashboard() {
           </section>
         )}
 
+        {activeTab === 'analytics' && (
+          <section className="analytics-section">
+            <QuizAnalytics />
+          </section>
+        )}
+
+        {/* Debug Section - Remove this after testing */}
+        {activeTab === 'debug' && (
+          <section className="debug-section">
+            <h2>Debug Quiz Integration</h2>
+            <button 
+              className="btn-primary" 
+              onClick={async () => {
+                try {
+                  // Simulate a quiz result submission
+                  const testResult = {
+                    quizTitle: 'Debug Test Quiz',
+                    topic: 'Testing',
+                    questions: [{ question: 'Test?', isCorrect: true }],
+                    totalQuestions: 1,
+                    correctAnswers: 1,
+                    score: 100,
+                    rawScore: 1,
+                    maxScore: 1,
+                    timeTaken: 30
+                  };
+                  
+                  const response = await fetch('http://localhost:5001/api/quiz-results/submit', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(testResult)
+                  });
+                  
+                  if (response.ok) {
+                    console.log('Test quiz submitted successfully');
+                    fetchData(); // Refresh data
+                    alert('Test quiz submitted! Check the quiz count.');
+                  } else {
+                    console.error('Failed to submit test quiz');
+                    alert('Failed to submit test quiz');
+                  }
+                } catch (error) {
+                  console.error('Error submitting test quiz:', error);
+                  alert('Error: ' + error.message);
+                }
+              }}
+            >
+              Test Quiz Submission
+            </button>
+            
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                // Test message listener
+                window.postMessage({
+                  type: 'QUIZ_COMPLETED',
+                  payload: {
+                    title: 'Self Test Quiz',
+                    topic: 'Self Testing',
+                    questions: [{ question: 'Self test?', isCorrect: true }],
+                    totalQuestions: 1,
+                    correctAnswers: 1,
+                    score: 100,
+                    rawScore: 1,
+                    maxScore: 1,
+                    timeTaken: 15
+                  }
+                }, '*');
+                console.log('Sent test message to self');
+              }}
+              style={{marginLeft: '10px'}}
+            >
+              Test Message Listener
+            </button>
+          </section>
+        )}
+
         {activeTab === 'community' && (
           <section className="community-section">
             <div className="forum-form-container">
@@ -290,6 +397,13 @@ export default function StudentDashboard() {
         )}
         </main>
       </div>
+      
+      {/* Quiz Result Handler - handles quiz submissions from external quiz app */}
+      <QuizResultHandler onQuizSubmitted={(result) => {
+        console.log('Quiz submitted:', result);
+        // Refresh stats when a quiz is submitted
+        fetchData();
+      }} />
     </div>
   );
 }

@@ -42,4 +42,11 @@ export const dashboardAPI = {
   replyToForumPost: (id, data) => api.post(`/forum/${id}/reply`, data)
 };
 
+export const quizResultsAPI = {
+  submitQuiz: (data) => api.post('/quiz-results/submit', data),
+  getQuizHistory: (params) => api.get('/quiz-results/history', { params }),
+  getAnalytics: (params) => api.get('/quiz-results/analytics', { params }),
+  getLeaderboard: (params) => api.get('/quiz-results/leaderboard', { params })
+};
+
 export default api;

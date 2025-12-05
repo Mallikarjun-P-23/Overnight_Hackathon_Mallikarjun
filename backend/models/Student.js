@@ -10,9 +10,50 @@ const studentSchema = new mongoose.Schema({
   performanceMetrics: {
     strengths: [String],
     weaknesses: [String],
-    averageScore: { type: Number, default: 0 }
+    averageScore: { type: Number, default: 0 },
+    totalQuizzesTaken: { type: Number, default: 0 },
+    bestScore: { type: Number, default: 0 },
+    worstScore: { type: Number, default: 100 },
+    recentScores: [{ 
+      score: Number, 
+      topic: String, 
+      date: { type: Date, default: Date.now },
+      quizTitle: String
+    }],
+    topicPerformance: [{
+      topic: String,
+      averageScore: Number,
+      quizzesTaken: Number,
+      bestScore: Number,
+      lastAttempt: Date,
+      improvement: Number // Percentage improvement from first to last
+    }],
+    streakData: {
+      currentStreak: { type: Number, default: 0 },
+      longestStreak: { type: Number, default: 0 },
+      lastQuizDate: Date
+    },
+    learningPath: {
+      completedTopics: [String],
+      currentTopic: String,
+      recommendedTopics: [String],
+      difficultyLevel: { type: String, enum: ['beginner', 'intermediate', 'advanced'], default: 'beginner' }
+    }
   },
-  weeklySessions: [{ date: Date, duration: Number }]
+  weeklySessions: [{ date: Date, duration: Number }],
+  achievements: [{
+    title: String,
+    description: String,
+    earnedAt: { type: Date, default: Date.now },
+    icon: String,
+    category: String
+  }]
+}, {
+  timestamps: true
 });
+
+// Index for better performance
+studentSchema.index({ userId: 1 });
+studentSchema.index({ 'performanceMetrics.averageScore': -1 });
 
 module.exports = mongoose.model('Student', studentSchema);

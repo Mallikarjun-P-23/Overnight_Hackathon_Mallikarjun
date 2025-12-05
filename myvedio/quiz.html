@@ -619,6 +619,62 @@
       scoreText.textContent = message;
       scoreCard.style.display = 'block';
       scoreCard.scrollIntoView({ behavior: 'smooth' });
+
+      // Send quiz results to main application
+      sendQuizResults({
+        title: 'PDF Quiz',
+        topic: 'General Knowledge',
+        questions: currentQuiz.map((question, index) => ({
+          question: question.question,
+          options: question.options,
+          correctAnswer: question.correct_answer,
+          userAnswer: userAnswers[index]?.answer || '',
+          isCorrect: userAnswers[index]?.isCorrect || false,
+          difficulty: 'medium'
+        })),
+        totalQuestions: totalQuestions,
+        correctAnswers: correctAnswers,
+        score: percentage,
+        rawScore: correctAnswers,
+        maxScore: totalQuestions,
+        timeTaken: Math.floor((Date.now() - quizStartTime) / 1000), // in seconds
+        difficulty: 'medium',
+        category: 'pdf-generated'
+      });
+    }
+
+    // Variables to track quiz timing
+    let quizStartTime = null;
+
+    // Function to send quiz results to main application
+    function sendQuizResults(quizData) {
+      try {
+        // Send message to parent window (main application)
+        if (window.parent && window.parent !== window) {
+          console.log('Sending message to parent window...');
+          window.parent.postMessage({
+            type: 'QUIZ_COMPLETED',
+            payload: quizData
+          }, 'http://localhost:3000'); // Correct frontend URL
+        }
+
+        // Also try sending to opener (if quiz was opened in new tab)
+        if (window.opener && !window.opener.closed) {
+          console.log('Sending message to opener window...');
+          window.opener.postMessage({
+            type: 'QUIZ_COMPLETED',
+            payload: quizData
+          }, 'http://localhost:3000'); // Correct frontend URL
+        }
+
+        console.log('Quiz results sent to main application:', quizData);
+        
+        // Show success notification
+        showSuccess('Quiz completed! Results have been saved to your dashboard.');
+        
+      } catch (error) {
+        console.error('Error sending quiz results:', error);
+      }
     }
 
     function resetQuiz() {
