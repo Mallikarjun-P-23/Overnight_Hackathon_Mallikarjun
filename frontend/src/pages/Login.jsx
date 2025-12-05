@@ -109,13 +109,6 @@ export default function Login() {
             </button>
           </p>
         </div>
-
-        <div className="email-examples">
-          <h4>Demo Accounts:</h4>
-          <p>Principal: test@principal.com</p>
-          <p>Teacher: test@teacher.com</p>
-          <p>Student: test@student.com</p>
-        </div>
       </div>
     </div>
   );
