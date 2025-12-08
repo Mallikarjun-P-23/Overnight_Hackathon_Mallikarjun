@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Quiz Submission</title>
+</head>
+<body>
+    <h1>Test Quiz Result Submission</h1>
+    <button onclick="sendTestQuizResult()">Send Test Quiz Result</button>
+    
+    <script>
+        function sendTestQuizResult() {
+            const testData = {
+                type: 'QUIZ_COMPLETED',
+                payload: {
+                    title: 'Test Quiz',
+                    topic: 'Mathematics',
+                    questions: [
+                        {
+                            question: 'What is 2+2?',
+                            options: ['3', '4', '5', '6'],
+                            correctAnswer: '4',
+                            userAnswer: '4',
+                            isCorrect: true,
+                            difficulty: 'easy'
+                        },
+                        {
+                            question: 'What is 5*3?',
+                            options: ['15', '12', '18', '20'],
+                            correctAnswer: '15',
+                            userAnswer: '12',
+                            isCorrect: false,
+                            difficulty: 'medium'
+                        }
+                    ],
+                    totalQuestions: 2,
+                    correctAnswers: 1,
+                    score: 50,
+                    rawScore: 1,
+                    maxScore: 2,
+                    timeTaken: 60,
+                    difficulty: 'medium',
+                    category: 'test'
+                }
+            };
+            
+            // Try to post message to main app
+            if (window.opener && !window.opener.closed) {
+                console.log('Sending message to opener...');
+                window.opener.postMessage(testData, '*');
+            } else {
+                console.log('No opener window found');
+            }
+            
+            if (window.parent && window.parent !== window) {
+                console.log('Sending message to parent...');
+                window.parent.postMessage(testData, '*');
+            } else {
+                console.log('No parent window found');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -17,6 +17,8 @@ export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [aiQuery, setAiQuery] = useState('');
   const [aiResponse, setAiResponse] = useState('');
+  const [aiLanguage, setAiLanguage] = useState('english');
+  const [aiLoading, setAiLoading] = useState(false);
   const [forumForm, setForumForm] = useState({ title: '', content: '', language: 'English', category: 'Discussion' });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
@@ -69,11 +71,24 @@ export default function StudentDashboard() {
 
   const handleAiQuery = async (e) => {
     e.preventDefault();
+    if (!aiQuery.trim()) return;
+    
+    setAiLoading(true);
+    setAiResponse('');
+    
     try {
-      const res = await dashboardAPI.aiHelper({ query: aiQuery });
+      console.log('Sending AI query:', { query: aiQuery, mother_tongue: aiLanguage });
+      const res = await dashboardAPI.aiHelper({ 
+        query: aiQuery.trim(), 
+        mother_tongue: aiLanguage 
+      });
+      console.log('AI response received:', res.data);
       setAiResponse(res.data.answer);
     } catch (error) {
-      setAiResponse('Error: AI service unavailable.');
+      console.error('AI Helper error:', error);
+      setAiResponse(`Error: ${error.response?.data?.message || 'AI service unavailable. Please try again later.'}`);
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -232,31 +247,124 @@ export default function StudentDashboard() {
                 </ResponsiveContainer>
               </div>
             </section>
+
+            {/* Quick AI Helper Widget */}
+            <section className="quick-ai-widget">
+              <div className="widget-card">
+                <h3>🤖 Quick AI Help</h3>
+                <p>Got a quick STEM question? Ask our AI!</p>
+                <div className="quick-ai-form">
+                  <input 
+                    type="text" 
+                    placeholder="Ask a quick question..."
+                    value={aiQuery}
+                    onChange={e => setAiQuery(e.target.value)}
+                    onKeyPress={e => e.key === 'Enter' && handleAiQuery(e)}
+                  />
+                  <button 
+                    onClick={handleAiQuery} 
+                    disabled={!aiQuery.trim() || aiLoading}
+                    className="quick-ask-btn"
+                  >
+                    {aiLoading ? '⟳' : '🚀'}
+                  </button>
+                </div>
+                {aiResponse && (
+                  <div className="quick-response">
+                    <p>{aiResponse.substring(0, 200)}...</p>
+                    <button onClick={() => setActiveTab('tools')} className="view-full-btn">
+                      View Full Response
+                    </button>
+                  </div>
+                )}
+                <button 
+                  onClick={() => setActiveTab('tools')} 
+                  className="full-ai-link"
+                >
+                  Open Full AI Helper →
+                </button>
+              </div>
+            </section>
           </>
         )}
 
         {activeTab === 'tools' && (
           <section className="tools-section">
             <div className="tool-card ai-helper">
-              <h2>AI Study Helper</h2>
-              <form onSubmit={handleAiQuery}>
-                <textarea
-                  placeholder="Ask a question..."
-                  value={aiQuery}
-                  onChange={e => setAiQuery(e.target.value)}
-                  required
-                />
-                <button type="submit" className="btn-primary">Ask AI</button>
+              <h2>AI STEM Learning Helper</h2>
+              <p className="helper-description">
+                Ask questions about Science, Technology, Engineering, or Mathematics. 
+                Our AI connects your questions to historical scientific discoveries and provides personalized explanations in your preferred language!
+                <br /><br />
+                <strong>Features:</strong> Historical context awareness • Multilingual support • Cultural examples • Learning progression tracking
+              </p>
+              
+              <form onSubmit={handleAiQuery} className="ai-form">
+                <div className="form-group">
+                  <label htmlFor="aiLanguage">Preferred Language:</label>
+                  <select 
+                    id="aiLanguage"
+                    value={aiLanguage} 
+                    onChange={e => setAiLanguage(e.target.value)}
+                    className="language-select"
+                  >
+                    <option value="english">English</option>
+                    <option value="hindi">हिन्दी (Hindi)</option>
+                    <option value="kannada">ಕನ್ನಡ (Kannada)</option>
+                    <option value="marathi">मराठी (Marathi)</option>
+                    <option value="tamil">தமிழ் (Tamil)</option>
+                    <option value="telugu">తెలుగు (Telugu)</option>
+                    <option value="bengali">বাংলা (Bengali)</option>
+                    <option value="gujarati">ગુજરાતી (Gujarati)</option>
+                    <option value="punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+                    <option value="malayalam">മലയാളം (Malayalam)</option>
+                    <option value="odia">ଓଡ଼ିଆ (Odia)</option>
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="aiQuery">Your Question:</label>
+                  <textarea
+                    id="aiQuery"
+                    placeholder={`Ask a STEM question in ${aiLanguage}...\n\n`}
+                    value={aiQuery}
+                    onChange={e => setAiQuery(e.target.value)}
+                    rows={6}
+                    required
+                  />
+                </div>
+                
+                <button 
+                  type="submit" 
+                  className="btn-primary ai-submit-btn" 
+                  disabled={aiLoading || !aiQuery.trim()}
+                >
+                  {aiLoading ? (
+                    <>
+                      <span className="loading-spinner">⟳</span>
+                      Thinking...
+                    </>
+                  ) : (
+                    <>
+                      <span></span>
+                      Ask AI Helper
+                    </>
+                  )}
+                </button>
               </form>
+              
               {aiResponse && (
                 <div className="ai-response">
-                  <h4>AI Response:</h4>
-                  <p>{aiResponse}</p>
+                  <h4>🎯 AI Response:</h4>
+                  <div className="response-content">
+                    {aiResponse.split('\n').map((line, index) => (
+                      <p key={index}>{line}</p>
+                    ))}
+                  </div>
                 </div>
               )}
+              
             </div>
-
-
           </section>
         )}
 
@@ -279,6 +387,45 @@ export default function StudentDashboard() {
         {activeTab === 'analytics' && (
           <section className="analytics-section">
             <QuizAnalytics />
+            
+            {/* AI Performance Analyzer */}
+            <div className="ai-analytics-helper">
+              <h3>AI Performance Insights</h3>
+              <p>Want to understand your performance better? Ask our AI!</p>
+              <div className="analytics-ai-suggestions">
+                <button 
+                  onClick={() => {
+                    const avgScore = stats?.performanceData?.averageScore || 0;
+                    const suggestion = avgScore < 70 
+                      ? "How can I improve my quiz scores in weak subjects?"
+                      : "What advanced topics should I explore next?";
+                    setAiQuery(suggestion);
+                    setActiveTab('tools');
+                  }}
+                  className="suggestion-btn"
+                >
+                   Get Study Suggestions
+                </button>
+                <button 
+                  onClick={() => {
+                    setAiQuery("Explain the concepts I struggled with in my recent quizzes");
+                    setActiveTab('tools');
+                  }}
+                  className="suggestion-btn"
+                >
+                   Explain Difficult Topics
+                </button>
+                <button 
+                  onClick={() => {
+                    setAiQuery("What are some real-world applications of the topics I've been learning?");
+                    setActiveTab('tools');
+                  }}
+                  className="suggestion-btn"
+                >
+                   Real-World Applications
+                </button>
+              </div>
+            </div>
           </section>
         )}
 
@@ -358,6 +505,31 @@ export default function StudentDashboard() {
 
         {activeTab === 'community' && (
           <section className="community-section">
+            {/* AI Discussion Helper */}
+            <div className="ai-discussion-helper">
+              <h3>🤝 AI Discussion Assistant</h3>
+              <div className="discussion-ai-options">
+                <button 
+                  onClick={() => {
+                    setAiQuery("Help me start a discussion about a STEM topic I'm curious about");
+                    setActiveTab('tools');
+                  }}
+                  className="discussion-btn"
+                >
+                   Get Discussion Ideas
+                </button>
+                <button 
+                  onClick={() => {
+                    setAiQuery("Explain a complex topic in simple terms for a forum post");
+                    setActiveTab('tools');
+                  }}
+                  className="discussion-btn"
+                >
+                   Simplify Complex Topics
+                </button>
+              </div>
+            </div>
+
             <div className="forum-form-container">
               <h2>Start Discussion</h2>
               <form onSubmit={handleCreatePost} className="forum-form">
@@ -404,6 +576,22 @@ export default function StudentDashboard() {
         // Refresh stats when a quiz is submitted
         fetchData();
       }} />
+
+      {/* Floating AI Assistant */}
+      <div className="floating-ai-assistant">
+        <button 
+          className="floating-ai-btn"
+          onClick={() => setActiveTab('tools')}
+          title="Ask AI Helper"
+        >
+          🤖
+        </button>
+        {activeTab !== 'tools' && aiResponse && (
+          <div className="floating-notification">
+            <span>New AI response available!</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
