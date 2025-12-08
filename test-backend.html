@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Backend API</title>
+</head>
+<body>
+    <h1>Backend API Test</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testQuizSubmission()">Test Quiz Submission</button>
+    <button onclick="testGetStats()">Test Get Stats</button>
+    
+    <div id="output"></div>
+    
+    <script>
+        let token = '';
+        
+        async function testLogin() {
+            try {
+                const response = await fetch('http://localhost:5001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'test@student.com', // You may need to register first
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.json();
+                token = data.token;
+                document.getElementById('output').innerHTML = `<p>Login: ${JSON.stringify(data)}</p>`;
+                console.log('Login response:', data);
+            } catch (error) {
+                document.getElementById('output').innerHTML = `<p>Login error: ${error.message}</p>`;
+                console.error('Login error:', error);
+            }
+        }
+        
+        async function testQuizSubmission() {
+            if (!token) {
+                alert('Please login first');
+                return;
+            }
+            
+            try {
+                const quizData = {
+                    quizTitle: 'Test Quiz',
+                    topic: 'Mathematics',
+                    questions: [
+                        {
+                            question: 'What is 2+2?',
+                            correctAnswer: '4',
+                            userAnswer: '4',
+                            isCorrect: true
+                        }
+                    ],
+                    totalQuestions: 1,
+                    correctAnswers: 1,
+                    score: 100,
+                    rawScore: 1,
+                    maxScore: 1,
+                    timeTaken: 30
+                };
+                
+                const response = await fetch('http://localhost:5001/api/quiz-results/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(quizData)
+                });
+                
+                const data = await response.json();
+                document.getElementById('output').innerHTML += `<p>Quiz submission: ${JSON.stringify(data)}</p>`;
+                console.log('Quiz submission response:', data);
+            } catch (error) {
+                document.getElementById('output').innerHTML += `<p>Quiz submission error: ${error.message}</p>`;
+                console.error('Quiz submission error:', error);
+            }
+        }
+        
+        async function testGetStats() {
+            if (!token) {
+                alert('Please login first');
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:5001/api/dashboard/student/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                document.getElementById('output').innerHTML += `<p>Stats: ${JSON.stringify(data)}</p>`;
+                console.log('Stats response:', data);
+            } catch (error) {
+                document.getElementById('output').innerHTML += `<p>Stats error: ${error.message}</p>`;
+                console.error('Stats error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

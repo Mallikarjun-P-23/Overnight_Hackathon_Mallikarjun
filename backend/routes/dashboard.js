@@ -449,14 +449,99 @@ router.get('/student/quizzes', auth, async (req, res) => {
   }
 });
 
-// AI Helper (Mock)
+// AI Helper - Connected to STEM Learning Enhancer
 router.post('/student/ai-helper', auth, async (req, res) => {
   try {
-    const { query } = req.body;
-    // Mock response
-    res.json({ answer: `Here is a helpful answer to your question: "${query}". (AI integration pending)` });
+    const { query, mother_tongue } = req.body;
+    
+    if (!query || query.trim().length === 0) {
+      return res.status(400).json({ message: 'Query is required' });
+    }
+
+    // Get user information
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prepare request to STEM API
+    const stemApiUrl = 'http://localhost:5002/api/stem/ask';
+    const requestData = {
+      query: query.trim(),
+      user_id: req.user.userId,
+      mother_tongue: mother_tongue || 'english'
+    };
+
+    console.log('Forwarding to STEM API:', requestData);
+
+    // Make request to STEM API
+    try {
+      const fetch = (await import('node-fetch')).default;
+      const response = await fetch(stemApiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+        timeout: 30000 // 30 second timeout
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(`STEM API error: ${response.status} - ${errorData.message || errorData.error}`);
+      }
+
+      const stemResponse = await response.json();
+      
+      // Return the enhanced response
+      res.json({
+        answer: stemResponse.answer,
+        metadata: stemResponse.metadata || {},
+        success: true,
+        source: 'STEM Learning Enhancer'
+      });
+
+    } catch (fetchError) {
+      console.error('STEM API connection error:', fetchError);
+      
+      // Fallback to basic response if STEM API is unavailable
+      const fallbackResponse = `I understand you're asking about: "${query}". 
+
+While our advanced AI system is currently unavailable, here are some suggestions:
+
+1. 📚 This appears to be a STEM-related question
+2. 🔍 Try breaking down the question into smaller parts
+3. 🌍 Consider how this concept applies in your daily life
+4. 📖 Look for examples around you
+
+Our enhanced AI system with historical learning connections will be available once the service is running.
+
+For immediate help, you can:
+• Ask your teacher or classmates
+• Search for educational videos online
+• Use textbooks or educational websites
+
+The question "${query}" is a great learning opportunity!`;
+
+      res.json({
+        answer: fallbackResponse,
+        metadata: {
+          fallback: true,
+          original_query: query,
+          user_language: mother_tongue || 'english'
+        },
+        success: true,
+        source: 'Fallback System'
+      });
+    }
+
   } catch (error) {
-    res.status(500).json({ message: 'AI Helper failed', error: error.message });
+    console.error('AI Helper error:', error);
+    res.status(500).json({ 
+      message: 'AI Helper failed', 
+      error: error.message,
+      success: false
+    });
   }
 });
 
